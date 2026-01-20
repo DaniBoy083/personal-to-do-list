@@ -1,35 +1,113 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState, useEffect, useRef, useMemo, useCallback } from "react"
+import { Header } from "./components/header";
+import { Footer } from "./components/footer";
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+const [tarefas, setTarefas] = useState<string[]>([]);
+
+const [editarTarefa, setEditarTarefa] = useState({
+    enabled: false,
+    tarefas: ''
+});
+
+const [comando, setComando] = useState(""); 
+
+const handleRegister = useCallback(() => {
+  if(!comando){
+  alert("Preencha obrigatoriamente com o nome da tarefa!")
+  return;
 }
 
-export default App
+if(editarTarefa.enabled){
+  handleSaveEdit();
+  return;
+}
+
+  setTarefas(tarefas => [...tarefas, comando]) 
+  setComando("")
+}, [comando, tarefas])
+
+function handleDelete(item: string){
+  const removerTarefa = tarefas.filter( tarefa => tarefa !== item) 
+  setTarefas(removerTarefa)
+  localStorage.setItem('@cursoreact', JSON.stringify(removerTarefa)) 
+}
+
+function handleEdit(item: string){
+  inputRef.current?.focus(); 
+  setComando(item)
+  setEditarTarefa({
+    enabled: true,
+    tarefas: item
+  })
+}
+
+function handleSaveEdit() {
+  const findEditTesk = tarefas.findIndex(tarefa => tarefa === editarTarefa.tarefas)
+  const altTasks = [...tarefas];
+
+  altTasks[findEditTesk] = comando;
+  setTarefas(altTasks)
+
+  setEditarTarefa({
+    enabled: false,
+    tarefas: ''
+  })
+
+  setComando("")
+  localStorage.setItem('@cursoreact', JSON.stringify(altTasks)) 
+}
+
+useEffect(() => {
+  const tarefasSalvas = localStorage.getItem('@cursoreact')
+
+  if(tarefasSalvas){
+    setTarefas(JSON.parse(tarefasSalvas));
+  }
+},[])
+
+useEffect(() => {
+  if(primeiroRender.current){
+    primeiroRender.current = false;
+    return;
+  }
+  localStorage.setItem('@cursoreact', JSON.stringify(tarefas))
+},[tarefas])
+
+const inputRef = useRef<HTMLInputElement>(null); 
+const primeiroRender = useRef(true);
+
+const totalTarefas = useMemo(() => {
+  return tarefas.length
+}, [tarefas])
+
+  return (
+    <div>
+      <Header titulo="Lista de tarefas pessoal (PERSONALIZADA)"/>
+      <hr/>
+      <input 
+        placeholder="Digite o nome de uma tarefa..."
+        value={comando} 
+        onChange={ (e) => setComando(e.target.value)} 
+        ref={inputRef}
+      />
+      <button onClick={handleRegister}>
+        {editarTarefa.enabled ? "atualizar tarefa" : "adcionar tarefa"} 
+      </button>
+      <hr/>
+      <strong>Voce tem {totalTarefas} tarefas!</strong>
+      <br/>
+      <br/>
+      {tarefas.map((item) => ( 
+        <section key={item}>
+          <span>{item}</span>
+          <button onClick={() => handleEdit(item)}>Editar</button>
+          <button onClick={() => handleDelete(item)}>Apagar</button>
+        </section>
+      ))}
+      <hr/>
+      <Footer/>
+    </div>
+  )
+}

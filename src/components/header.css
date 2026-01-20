@@ -1,0 +1,9 @@
+.cabeçalho {
+    width: 100%;
+    background-color: black;
+}
+
+.titulo {
+    color: white;
+    padding-top: 14px;
+}
