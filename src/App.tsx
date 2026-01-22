@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react"
 import { Header } from "./components/header";
 import { Footer } from "./components/footer";
+import "./App.css";
 
 export default function App() {
 
@@ -86,7 +87,7 @@ const totalTarefas = useMemo(() => {
     <div>
       <Header titulo="Lista de tarefas pessoal (PERSONALIZADA)"/>
       <hr/>
-      <input 
+      <input
         placeholder="Digite o nome de uma tarefa..."
         value={comando} 
         onChange={ (e) => setComando(e.target.value)} 
